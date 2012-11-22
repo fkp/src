@@ -1,0 +1,10 @@
+#!/bin/sh
+
+TARGET=/media/backup/svnrep_backup/svnrep.dmp.Z
+TEMP=/tmp/svn_archive_temp.dmp
+
+/usr/bin/svnadmin dump /home/svnadmin/repository > $TEMP
+/bin/gzip $TEMP
+/bin/cp $TEMP.gz $TARGET
+/bin/rm $TEMP.gz
+

@@ -1,0 +1,246 @@
+#!/usr/bin/perl
+
+# csv2pg [options] <csv-filename> <postgresql-table-name>
+#
+# Loads a CSV text file into an automatically generated Postgresql table for
+# quick-and-dirty analysis.
+#
+# The first line of the input file should contain the column names (but see
+# the --no-header option). Column names are automatically normalized
+# (e.g., "Blue Widget!" becomes "blue_widget")
+#
+# Column types are determined automatically based on the most restrictive data
+# type possible for each column.
+#
+# Writes the schema definition to standard output. The idiom is:
+#
+# csv2pg stats.csv mystats | psql mydb
+#
+# That loads the 'stats.csv' CSV file into the 'mystats' table of the 'mydb'
+# database.
+#
+# Options:
+#
+# --csv-OPTION Any options starting with --csv- are passed to the
+# Text::CSV_XS constructor to control the parsing of the
+# CSV file. See 'perldoc Text::CSV_XS' for possibilities.
+# For example, use --csv-sep-char='\t' to indicate the
+# input file is tab-delimited.
+#
+# --recno Add a column named 'recno' that contains the line/record
+# number from the CSV file.
+#
+# --no-header First line does not contain column names. Column names
+# are auto-generated in this case based on the column
+# position (e.g., col1, col2, col3, as so on).
+#
+# --verbose Emit status/debug info to stderr
+#
+# Copyright (c) 2009 Maurice Aubrey. All rights reserved. This program is free
+# software; you can redistribute it and/or modify it under the same terms as
+# Perl itself.
+
+# default option values
+our %OPT = (
+verbose => 0,
+header => 1,
+csv => { binary => 1, blank_is_undef => 1 },
+);
+
+use strict;
+use File::Temp qw/ tempfile /;
+use Text::CSV_XS;
+use Getopt::Long;
+
+# Date test/reformatting functions using different modules
+
+# Date::Manip
+sub test_date_manip {
+my $date = Date::Manip::ParseDate($_) or return;
+$date = Date::Manip::UnixDate($date, "%C") or return;
+$_ = $date;
+}
+
+# Date::Parse
+sub test_date_parse {
+my $time = Date::Parse::str2time($_) or return;
+$_ = Date::Format::time2str("%C", $time);
+}
+
+# Figure out what date modules are available
+# Returns reference to date function to use.
+sub match_date {
+
+my $module = $OPT{'date-module'};
+
+# auto determine module
+unless ($module) {
+eval { require Date::Manip };
+$module = $@ ? 'Date::Parse' : 'Date::Manip';
+}
+
+# try to load module
+if ($module eq 'Date::Manip') {
+require Date::Manip;
+} elsif ($module eq 'Date::Parse') {
+require Date::Parse;
+require Date::Format;
+} else {
+eval "require $module";
+die "unable to load date module '$module': $@" if $@;
+}
+warn "Using date module '$module'\n" if $OPT{verbose};
+
+$module = lc $module;
+$module =~ s/::/_/g;
+$module = "test_$module";
+
+\&$module or die "unknown date function '$module'";
+}
+
+{
+# column names that will need munging
+my %reserved = map { $_ => 1 } qw/
+order select from where group limit and or
+/;
+$reserved{''} = 1;
+
+sub normalize_column_names {
+my @columns = @_;
+
+# Blue Widgets! => blue_widgets
+foreach (@columns) {
+$_ = lc $_;
+s/[-_\s]+/_/g;
+s/^_+|_+$//g;
+s/[^a-z0-9_]+//g;
+$_ = ($_ || 'undef') . $reserved{$_}++ if $reserved{$_};
+}
+
+return @columns;
+}
+}
+
+my $parser = Getopt::Long::Parser->new(config => [qw/ pass_through /]);
+$parser->getoptions(\%OPT, 'verbose!', 'header!', 'recno', 'date-module=s');
+
+
+# Heuristics to decide column types. Tests will be performed in the
+# listed order with columns being promoted to more general types
+# as they fail the more specific matches.
+#
+# Type matches can be specified as regular expressions or code
+# references (with the value passed through $_). Any modifications to
+# $_ will change the underlying column value.
+my @TYPE_TESTS = (
+qr/^[-+]?\d+$/ => 'integer',
+qr/^[-+]?\d+\.\d+$/ => 'float',
+match_date() => 'timestamp',
+1 => 'text', # most general type
+);
+
+# Options beginning with --csv are passed to the Text::CSV_XS constructor
+# to control how the input file is parsed.
+# See 'perldoc Text::CSV_XS' for details on the options.
+# For example, to specify that input fields are pipe-separated rather than
+# comma-separated, you can pass the sep_char option like this:
+# csv2pg --csv-sep-char="|"
+while (@ARGV and $ARGV[0] =~ /^--?(.*)$/) {
+local $_ = shift @ARGV;
+last if $_ eq '--'; # Terminate arguments
+my($key, $val) = split /=/, $1, 2;
+$key = lc $key;
+$key =~ tr/-/_/;
+$key =~ /^csv_(.+)$/ or die "Unknown option: $key\n";
+$key = $1;
+$val = "\t" if $val eq '\t' and $key eq 'sep_char'; # make \t act as expected
+$OPT{csv}{ $key } = $val;
+}
+
+@ARGV == 2 or die "Usage: $0 [options] <csv-filename> <table-name>\n";
+my($file, $table) = @ARGV;
+
+open my $ifh, '<', $file or die "unable to read file '$file': $!";
+my $csv = Text::CSV_XS->new($OPT{csv}) or die "csv constructor failed!";
+
+my($ofh, $temp_filename) = tempfile;
+warn "Tempfile: $temp_filename\n" if $OPT{verbose};
+
+my @hdr;
+if ($OPT{header}) {
+my $hdr = $csv->getline($ifh)
+or die "error reading header at line $.: ", $csv->error_input;
+@hdr = normalize_column_names(@$hdr);
+}
+unshift @hdr, 'recno' if $OPT{recno};
+
+my $recno = 0;
+my %types;
+my %colpos;
+while (my $row = $csv->getline($ifh)) {
+@$row or last; # Some versions of CSV_XS return empty result at EOF
+$recno++;
+
+# If no header, auto-generate column names
+if (1 == $recno and !$OPT{header}) {
+my $col = 1;
+push @hdr, map { "col" . $col++ } @$row;;
+}
+
+# look up col position by name
+@colpos{ @hdr } = (0..$#hdr) unless keys %colpos;
+
+unshift @$row, $recno if $OPT{recno};
+
+foreach my $col (@hdr) {
+foreach ($row->[ $colpos{ $col } ]) { # $_ is now alias for value
+length or next;
+
+my $ctype = $types{ $col }{type_idx}; # index into @TYPE_TESTS
+for (my $i = $ctype || 0; $i < @TYPE_TESTS; $i += 2) {
+# warn "CHECKING '$col' against index $i max: ", $#type_tests, "\n";
+my $test = $TYPE_TESTS[$i];
+my $ref = uc ref($test);
+my $old_val = $_;
+if ($ref eq 'REGEXP') {
+# warn "REGEXP TEST [$i]: $_\n";
+/$test/ or next;
+} elsif ($ref eq 'CODE') {
+# warn "CODE TEST [$i]: $_\n";
+$test->() or next;
+}
+
+if ($OPT{verbose} and $_ ne $old_val) { # may have modified value
+my $type = $TYPE_TESTS[ $i + 1 ];
+warn "[val_change:$recno] col=$col type=$type old_val=$old_val new_val=$_\n";
+}
+
+if (not defined $ctype or $i > $ctype) { # type change
+$types{ $col } = {
+type_idx => $i,
+line => $recno,
+val => $_,
+};
+if ($OPT{verbose}) {
+my $type = $TYPE_TESTS[ $i + 1 ];
+warn "[type_demotion:$recno] col=$col type=$type val=$_\n";
+}
+}
+last;
+}
+}
+}
+
+# Pg copy format and escaping rules
+# http://www.faqs.org/docs/ppbook/r23528.htm
+print $ofh join "\t", map { s/[\\\n\t]/\\$1/g; $_ eq '' ? '\\N' : $_ } @$row;
+print $ofh "\n";
+}
+
+print "CREATE TABLE $table (\n ";
+print join "\n ,", map { "$_ " . $TYPE_TESTS[ $types{$_}{type_idx} + 1 ] } @hdr;
+print "\n);\n";
+
+print "\n\\copy $table from '$temp_filename'\n";
+
+

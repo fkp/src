@@ -1,0 +1,14 @@
+#!/usr/bin/env ruby
+
+require 'ThreadedProcessor'
+
+class DoThumbs < ThreadedFileProcessor
+
+  def DoThreadedFileAction(filename, name, extension)
+    `convert #{filename} -resize 30% #{name}_small.#{extension}`
+  end
+
+end
+
+obj = DoThumbs.new
+obj.Run ARGV

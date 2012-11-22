@@ -1,0 +1,18 @@
+#!/usr/bin/env ruby
+
+require '~/bin/ThreadedProcessor'
+
+class DoBaw < ThreadedFileProcessorImageMagik
+
+  def GetArgs()
+    return "-colorspace Gray"
+  end
+
+  def GetSuffix()
+    return "baw"
+  end
+
+end
+
+obj = DoBaw.new
+obj.Run ARGV

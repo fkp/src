@@ -1,0 +1,1 @@
+sudo sh -c "apt-get update; apt-get -y upgrade; shutdown -h now"

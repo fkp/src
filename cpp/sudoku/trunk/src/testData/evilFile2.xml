@@ -1,0 +1,96 @@
+<!DOCTYPE board [
+        <!ELEMENT board (square*)>
+        <!ELEMENT square (#PCDATA)>
+]>
+<board>
+	<square value="1"/>
+	<square value=""/>
+	<square value=""/>
+	<square value="8"/>
+	<square value=""/>
+	<square value="3"/>
+	<square value="4"/>
+	<square value=""/>
+	<square value=""/>
+
+	<square value="6"/>
+	<square value="3"/>
+	<square value=""/>
+	<square value=""/>
+	<square value=""/>
+	<square value=""/>
+	<square value="9"/>
+	<square value=""/>
+	<square value=""/>
+
+	<square value=""/>
+	<square value=""/>
+	<square value=""/>
+	<square value=""/>
+	<square value="7"/>
+	<square value=""/>
+	<square value=""/>
+	<square value=""/>
+	<square value=""/>
+
+	<square value="2"/>
+	<square value=""/>
+	<square value=""/>
+	<square value="4"/>
+	<square value=""/>
+	<square value="7"/>
+	<square value="5"/>
+	<square value="9"/>
+	<square value=""/>
+
+	<square value=""/>
+	<square value=""/>
+	<square value=""/>
+	<square value=""/>
+	<square value=""/>
+	<square value=""/>
+	<square value=""/>
+	<square value=""/>
+	<square value=""/>
+
+	<square value=""/>
+	<square value="5"/>
+	<square value="8"/>
+	<square value="2"/>
+	<square value=""/>
+	<square value="6"/>
+	<square value=""/>
+	<square value=""/>
+	<square value="1"/>
+
+	<square value=""/>
+	<square value=""/>
+	<square value=""/>
+	<square value=""/>
+	<square value="6"/>
+	<square value=""/>
+	<square value=""/>
+	<square value=""/>
+	<square value=""/>
+
+	<square value=""/>
+	<square value=""/>
+	<square value="7"/>
+	<square value=""/>
+	<square value=""/>
+	<square value=""/>
+	<square value=""/>
+	<square value="6"/>
+	<square value="4"/>
+
+	<square value=""/>
+	<square value=""/>
+	<square value="3"/>
+	<square value="5"/>
+	<square value=""/>
+	<square value="8"/>
+	<square value=""/>
+	<square value=""/>
+	<square value="9"/>
+</board>
+	

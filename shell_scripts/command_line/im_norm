@@ -1,0 +1,18 @@
+#!/usr/bin/env ruby
+
+require '~/bin/ThreadedProcessor'
+
+class DoNorm < ThreadedFileProcessorImageMagik
+
+  def GetArgs()
+    return "-normalize"
+  end
+
+  def GetSuffix()
+    return "normalized"
+  end
+
+end
+
+obj = DoNorm.new
+obj.Run ARGV
