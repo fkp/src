@@ -1,0 +1,14 @@
+#!/usr/bin/env ruby
+
+require 'ThreadedProcessor'
+
+class DoBaw < ThreadedFileProcessor
+
+  def DoThreadedFileAction(filename, name, extension)
+    `convert -colorspace Gray #{filename} #{name}_baw.#{extension}`
+  end
+
+end
+
+obj = DoBaw.new
+obj.Run ARGV

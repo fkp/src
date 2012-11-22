@@ -1,0 +1,14 @@
+#!/usr/bin/env ruby
+
+require 'ThreadedProcessor'
+
+class DoNorm < ThreadedFileProcessor
+
+  def DoThreadedFileAction(filename, name, extension)
+    `convert -normalize #{filename} #{name}_normalized.#{extension}`
+  end
+
+end
+
+obj = DoNorm.new
+obj.Run ARGV

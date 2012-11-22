@@ -1,0 +1,18 @@
+#!/usr/bin/env ruby
+
+require '~/bin/ThreadedProcessor'
+
+class DoLargeThumbs < ThreadedFileProcessorImageMagik
+
+  def GetArgs()
+    return "-resize 60%"
+  end
+
+  def GetSuffix()
+    return "small"
+  end
+
+end
+
+obj = DoLargeThumbs.new
+obj.Run ARGV
