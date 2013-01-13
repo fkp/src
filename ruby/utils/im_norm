@@ -1,11 +1,15 @@
 #!/usr/bin/env ruby
 
-require 'ThreadedProcessor'
+require '~/bin/ThreadedProcessor'
 
-class DoNorm < ThreadedFileProcessor
+class DoNorm < ThreadedFileProcessorImageMagik
 
-  def DoThreadedFileAction(filename, name, extension)
-    `convert -normalize #{filename} #{name}_normalized.#{extension}`
+  def GetArgs()
+    return "-normalize"
+  end
+
+  def GetSuffix()
+    return "normalized"
   end
 
 end

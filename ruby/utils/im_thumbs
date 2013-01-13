@@ -1,11 +1,15 @@
 #!/usr/bin/env ruby
 
-require 'ThreadedProcessor'
+require '~/bin/ThreadedProcessor'
 
-class DoThumbs < ThreadedFileProcessor
+class DoThumbs < ThreadedFileProcessorImageMagik
 
-  def DoThreadedFileAction(filename, name, extension)
-    `convert #{filename} -resize 30% #{name}_small.#{extension}`
+  def GetArgs()
+    return "-resize 30%"
+  end
+
+  def GetSuffix()
+    return "small"
   end
 
 end
