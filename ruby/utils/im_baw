@@ -1,11 +1,15 @@
 #!/usr/bin/env ruby
 
-require 'ThreadedProcessor'
+require '~/bin/ThreadedProcessor'
 
-class DoBaw < ThreadedFileProcessor
+class DoBaw < ThreadedFileProcessorImageMagik
 
-  def DoThreadedFileAction(filename, name, extension)
-    `convert -colorspace Gray #{filename} #{name}_baw.#{extension}`
+  def GetArgs()
+    return "-colorspace Gray"
+  end
+
+  def GetSuffix()
+    return "baw"
   end
 
 end

@@ -14,7 +14,7 @@ class ThreadedProcessor
       opts.banner = "Usage: [options] file1 file2 ..."
  
       # Define the options, and what they do
-      options[:threads] = 4
+      options[:threads] = 3
       opts.on( '-l', '--threads n', 'Number of threads to use' ) do|threadsnum|
         options[:threads] = threadsnum
       end
@@ -79,4 +79,12 @@ class ThreadedFileProcessor < ThreadedProcessor
     sleep 0.5
     return
   end
+end
+
+class ThreadedFileProcessorImageMagik < ThreadedFileProcessor
+
+  def DoThreadedFileAction(filename, name, extension)
+    `convert #{GetArgs()} #{filename} #{name}_#{GetSuffix()}.#{extension}`
+  end
+
 end
