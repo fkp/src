@@ -69,19 +69,19 @@ class ThreadedFileProcessor < ThreadedProcessor
     if matches == nil
       puts "skipping " + argument
     else
-      puts "Processing: " + argument + " " + ProgressString(queued)
+      puts ProgressString(queued) + ": " + argument
       DoThreadedFileAction(argument,matches[1],matches[2])
     end
   end
 
   def DoThreadedFileAction(filename, name, extension)
-    puts "I have file: " + filename + " " + ProgressString(queued) + " and will now sleep"
+    puts ProgressString(queued) + "I have file: " + filename + " and will now sleep"
     sleep 0.5
     return
   end
 
   def ProgressString(queued)
-    return "(" + queued.to_s + " queued)"
+    return "[q" + queued.to_s + "]"
   end
 end
 
