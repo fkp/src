@@ -48,7 +48,7 @@ class ThreadedProcessor
       Thread.new do
         while (!toProcess.empty?()) do
           thisVal = toProcess.pop
-          DoThreadedAction(thisVal)
+          DoThreadedAction(thisVal, toProcess.length)
         end
       end
     end
@@ -63,21 +63,25 @@ end
 
 class ThreadedFileProcessor < ThreadedProcessor
 
-  def DoThreadedAction(argument)
+  def DoThreadedAction(argument, queued)
     regEx = "(.*)\\.([^.]*)"
     matches=argument.match regEx
     if matches == nil
       puts "skipping " + argument
     else
-      puts "Processing file: " + argument
+      puts "Processing: " + argument + " " + ProgressString(queued)
       DoThreadedFileAction(argument,matches[1],matches[2])
     end
   end
 
   def DoThreadedFileAction(filename, name, extension)
-    puts "I have file: " + filename + " and will now sleep"
+    puts "I have file: " + filename + " " + ProgressString(queued) + " and will now sleep"
     sleep 0.5
     return
+  end
+
+  def ProgressString(queued)
+    return "(" + queued.to_s + " queued)"
   end
 end
 
