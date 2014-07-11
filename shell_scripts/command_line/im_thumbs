@@ -5,7 +5,7 @@ require '~/bin/ThreadedProcessor'
 class DoThumbs < ThreadedFileProcessorImageMagik
 
   def GetArgs()
-    return "-resize 30%"
+    return "-resize 50%"
   end
 
   def GetSuffix()
