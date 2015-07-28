@@ -88,7 +88,7 @@ end
 class ThreadedFileProcessorImageMagik < ThreadedFileProcessor
 
   def DoThreadedFileAction(filename, name, extension)
-    `convert #{GetArgs()} #{filename} #{name}_#{GetSuffix()}.#{extension}`
+    `convert #{GetArgs()} \"#{filename}\" \"#{name}_#{GetSuffix()}.#{extension}\"`
   end
 
 end
