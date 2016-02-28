@@ -14,8 +14,10 @@ class ThreadedProcessor
       opts.banner = "Usage: [options] file1 file2 ..."
  
       # Define the options, and what they do
-      options[:threads] = 3
-      opts.on( '-l', '--threads n', 'Number of threads to use' ) do|threadsnum|
+      #nicer option as of Ruby 2.2.3...
+      #options[:threads] = Etc.nprocessors
+      options[:threads] = `cat /proc/cpuinfo | grep processor | wc -l`
+      opts.on( '-t', '--threads n', 'Number of threads to use, otherwise use however many we can detect' ) do|threadsnum|
         options[:threads] = threadsnum
       end
  
