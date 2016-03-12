@@ -46,7 +46,6 @@ class ThreadedProcessor
     threads = options[:threads].to_i
     puts "Starting " + threads.to_s + " threads for " + toProcess.length.to_s + " items"
     for threadNo in 1..threads
-      puts "Starting thread" + threadNo.to_s
       Thread.new do
         while (!toProcess.empty?()) do
           thisVal = toProcess.pop
