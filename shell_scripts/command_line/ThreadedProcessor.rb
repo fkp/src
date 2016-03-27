@@ -89,7 +89,14 @@ end
 class ThreadedFileProcessorImageMagik < ThreadedFileProcessor
 
   def DoThreadedFileAction(filename, name, extension)
-    `convert #{GetArgs()} \"#{filename}\" \"#{name}_#{GetSuffix()}.#{extension}\"`
+
+    targetFile = name + "_" + GetSuffix() + "." + extension
+
+    if (!File.exist?(targetFile))
+      `convert #{GetArgs()} \"#{filename}\" \"#{targetFile}\" `
+    else
+      puts "Skipping file " + targetFile + " as already exists."
+    end
   end
 
 end
