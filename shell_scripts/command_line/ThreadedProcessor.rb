@@ -46,13 +46,7 @@ class ThreadedProcessor
     threads = options[:threads].to_i
     puts "Starting " + threads.to_s + " threads for " + toProcess.length.to_s + " items"
     for threadNo in 1..threads
-<<<<<<< HEAD
-<<<<<<< HEAD
       puts "Starting thread" + threadNo.to_s
-=======
->>>>>>> 44cbcdcdc4fe5c1c2f9d5c0267906a630de73f63
-=======
->>>>>>> 1acf147012b3c70791672c4487fc4e43c212727e
       Thread.new do
         while (!toProcess.empty?()) do
           thisVal = toProcess.pop
@@ -96,13 +90,7 @@ end
 class ThreadedFileProcessorImageMagik < ThreadedFileProcessor
 
   def DoThreadedFileAction(filename, name, extension)
-<<<<<<< HEAD
-<<<<<<< HEAD
     `convert #{GetArgs()} \"#{filename}\" \"#{name}_#{GetSuffix()}.#{extension}\"`
-=======
-=======
->>>>>>> 1acf147012b3c70791672c4487fc4e43c212727e
-
     targetFile = name + "_" + GetSuffix() + "." + extension
 
     if (!File.exist?(targetFile))
@@ -110,10 +98,6 @@ class ThreadedFileProcessorImageMagik < ThreadedFileProcessor
     else
       puts "Skipping file " + targetFile + " as already exists."
     end
-<<<<<<< HEAD
->>>>>>> 44cbcdcdc4fe5c1c2f9d5c0267906a630de73f63
-=======
->>>>>>> 1acf147012b3c70791672c4487fc4e43c212727e
   end
 
 end
