@@ -28,21 +28,23 @@ class MusicInserter
   end
 
   def InsertRow(file)
-	begin
-      data = TagLib::File.new(file)
-      sql = "INSERT INTO Music(Artist, Album, Title, Filename) VALUES (" + DelimitValue(data.artist) + "," + DelimitValue(data.album) + "," + DelimitValue(data.title) + "," + DelimitValue(file.to_s()) + ")"
-      #puts sql
-      print "\r#{@@rowsInserted.to_s()}"
-      STDOUT.flush
-      #puts file.to_s()
-      ExecuteSql(sql)
+    begin
+      TagLib::FileRef.open(file.to_s()) do |fileref|
+	data = fileref.tag
+	sql = "INSERT INTO Music(Artist, Album, Track, Title, Filename) VALUES (" + DelimitValue(data.artist) + "," + DelimitValue(data.album) + "," + data.track.to_s() + "," + DelimitValue(data.title) + "," + DelimitValue(file.to_s()) + ")"
+        #puts sql
+        #print "\r#{@@rowsInserted.to_s()}"
+        STDOUT.flush
+        puts file.to_s()
+        ExecuteSql(sql)
 
-      @@rowsInserted+=1
+        @@rowsInserted+=1
+      end
       
-      #if(@@rowsInserted % COMMIT_AFTER == 0)
-      #  puts "Committing after " + @@rowsInserted.to_s() + " rows"
-	  #  ExecuteSql("COMMIT")
-	  #end
+        #if(@@rowsInserted % COMMIT_AFTER == 0)
+        #  puts "Committing after " + @@rowsInserted.to_s() + " rows"
+  	  #  ExecuteSql("COMMIT")
+  	  #end
     rescue Exception => e 
       puts "Exception occured"
       puts e
@@ -54,7 +56,7 @@ class MusicInserter
 end
 
 class MusicInserterSqlite < MusicInserter
-  CREATE_TABLE_SQL="CREATE TABLE Music(Id INTEGER PRIMARY KEY, Artist TEXT, Album TEXT, Title TEXT, Filename TEXT)"
+  CREATE_TABLE_SQL="CREATE TABLE Music(Id INTEGER PRIMARY KEY, Artist TEXT, Album TEXT, Track INT, Title TEXT, Filename TEXT)"
   @@sqliteFile="data.sqlite"
   @@sqliteDatabase=nil
 
@@ -91,7 +93,7 @@ class MusicInserterPostgres < MusicInserter
   #@@pgPort="5432"
   @@pgDbName="scratch"
   #@@pgUsername="fraser"
-  CREATE_TABLE_SQL="CREATE TABLE Music(Artist TEXT, Album TEXT, Title TEXT, Filename TEXT)"
+  CREATE_TABLE_SQL="CREATE TABLE Music(Artist TEXT, Album TEXT, Track INTEGER, Title TEXT, Filename TEXT)"
   DROP_TABLE_SQL="DROP TABLE Music"
   
   @@pgConnection=nil
