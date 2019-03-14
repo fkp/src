@@ -45,10 +45,10 @@ class MusicInserterPostgres
 	puts '  Table drop failed'
       end
 
-      @@pgConnection.exec("CREATE TABLE "+tableName+"(Artist TEXT, Album TEXT, Track INTEGER, Title TEXT, Filename TEXT)")
+      @@pgConnection.exec("CREATE TABLE "+tableName+"(artist TEXT, album TEXT, track INTEGER, title TEXT, filename TEXT, notes TEXT)")
 
       # Setup the connection to insert rows
-      @@pgConnection.prepare('insert1', 'INSERT INTO '+tableName+'(Artist, Album, Track, Title, Filename) VALUES ($1,$2,$3,$4,$5)')
+      @@pgConnection.prepare('insert1', 'INSERT INTO '+tableName+'(artist, album, track, title, filename, notes) VALUES ($1,$2,$3,$4,$5,$6)')
     end
   end
 
@@ -59,7 +59,7 @@ class MusicInserterPostgres
 	  if !@@quiet
             puts file.to_s()
 	  end
-	  @@pgConnection.exec_prepared('insert1', [data.artist,data.album,data.track,data.title,file.to_s()])
+	  @@pgConnection.exec_prepared('insert1', [data.artist,data.album,data.track,data.title,file.to_s(),''])
         rescue
           puts '  Failed for ' + file.to_s()
         end
