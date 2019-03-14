@@ -3,6 +3,7 @@
 require 'pathname'
 require 'taglib'
 require 'pg'
+require 'optparse'
 
 class FileFinder
   def FindFiles(path, &block)
@@ -27,8 +28,11 @@ class MusicInserterPostgres
   #@@pgUsername="fraser"
   
   @@pgConnection=nil
+  @@quiet
 
-  def Init(tableName)
+  def Init(tableName, quiet)
+
+    @@quiet = quiet
 
     begin
       #@@pgConnection = PG::Connection.new("localhost", 5432, '','',"scratch","fraser","fraser")
@@ -52,7 +56,9 @@ class MusicInserterPostgres
       begin
 	TagLib::FileRef.open(file.to_s()) do |fileref|
 	  data = fileref.tag
-          puts file.to_s()
+	  if !@@quiet
+            puts file.to_s()
+	  end
 	  @@pgConnection.exec_prepared('insert1', [data.artist,data.album,data.track,data.title,file.to_s()])
         rescue
           puts '  Failed for ' + file.to_s()
@@ -67,8 +73,24 @@ class MusicInserterPostgres
 
 end
 
+quiet=false
+options = {}
+optparse = OptionParser.new do |opts|
+  opts.banner = "Useage: insertMusic.rb [options] <tableName to insert> <file/directory to search from>"
+  opts.on('-q', '--quiet', 'Don\'t show files as they are processed') do |q|
+    quiet=true;
+  end
+end
+optparse.parse!
+
+# Check the required arguments
+if ARGV.length != 2
+  puts optparse
+  exit(-1)
+end
+
 inserter = MusicInserterPostgres.new
-inserter.Init(ARGV[0])
+inserter.Init(ARGV[0], quiet)
 
 files = FileFinder.new
 
