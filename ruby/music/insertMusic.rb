@@ -25,7 +25,7 @@ class MusicInserterPostgres
   #@@pgIP="localhost"
   #@@pgPort="5432"
   @@pgDbName="scratch"
-  #@@pgUsername="fraser"
+  #@@pgUsername=""
   
   @@pgConnection=nil
   @@quiet
@@ -47,6 +47,10 @@ class MusicInserterPostgres
 
       @@pgConnection.exec("CREATE TABLE "+tableName+"(artist TEXT, album TEXT, track INTEGER, title TEXT, filename TEXT, notes TEXT)")
 
+      @@pgConnection.exec("CREATE INDEX track_"+tableName+" ON " +tableName+ " (artist, album, track, title)")
+      @@pgConnection.exec("CREATE INDEX filename_"+tableName+" ON " +tableName+ " (filename)")
+      @@pgConnection.exec("CREATE INDEX notes_"+tableName+" ON " +tableName+ " (notes)")
+
       # Setup the connection to insert rows
       @@pgConnection.prepare('insert1', 'INSERT INTO '+tableName+'(artist, album, track, title, filename, notes) VALUES ($1,$2,$3,$4,$5,$6)')
     end
@@ -67,9 +71,9 @@ class MusicInserterPostgres
   end
   
   def Close()
+    # Close the connection
     @@pgConnection.close if @@pgConnection
   end
-
 
 end
 
@@ -97,5 +101,5 @@ files = FileFinder.new
 files.FindFiles(Pathname.new(ARGV[1])) {|file| inserter.InsertMusicRow(file) }
 inserter.Close()
 
-puts "Done!"
+puts "Done adding to table: " + ARGV[0]
 

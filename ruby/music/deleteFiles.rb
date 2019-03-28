@@ -21,7 +21,12 @@ class DoThingsWithRows
      
       res = @@pgConnection.exec('SELECT notes, filename FROM '+tableName+' WHERE notes = \'' + noteValue + '\'')
       res.each do |row|
-        puts row['notes'] + ' | ' + row['filename']
+        #puts row['notes'] + ' | ' + row['filename']
+	if (File.exist?(row['filename']))
+	  File.delete(row['filename'])
+	else
+	  puts 'Didn\'t find file ' + row['filename']
+	end	
       end	
     end
   end
